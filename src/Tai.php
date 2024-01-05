@@ -86,7 +86,7 @@ class Tai
         ];
 
         // Clean up
-        $prompts = array_filter($prompts);
+        $prompts = array_filter(array_values($prompts));
 
         // Run OpenAI
         $openai = new OpenAi;

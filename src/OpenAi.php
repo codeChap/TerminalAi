@@ -2,7 +2,7 @@
 
 class OpenAi
 {
-    public $prompt = [];
+    public $prompts = [];
 
     public $key;
 
@@ -11,9 +11,32 @@ class OpenAi
         $this->key = $key;
     }
 
-    public function setPrompt($text)
+    /**
+     * Set the prompts array
+     * 
+     * @param array $prompts
+     */
+    public function setPrompt( array $prompts)
     {
-        $this->prompt = $text;
+        // Loop over the prompts and filter out empty ones
+        foreach($prompts AS $k => $prompt){
+            if(empty($prompt['content'])){
+                unset($prompts[$k]);
+            }
+        }
+
+        // Make sure each prompts content is unique
+        $prompts = array_unique($prompts, SORT_REGULAR);
+
+        if(count($prompts) == 0){
+            throw new Exception("No valid prompts provided");
+        }
+
+        // Reset keys
+        $prompts = array_values($prompts);
+
+        // Set the prompts
+        $this->prompts = $prompts;
     }
 
     public function run()
@@ -24,13 +47,13 @@ class OpenAi
         // Set up headers
         $headers = [
             "Content-Type: application/json",
-            "Authorization: Bearer {$this->key}"
+            "Authorization: Bearer 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"
         ];
 
         // Default post body
         $body = [
-            "model"             => 'gpt-4',
-            "messages"          => array_values($this->prompt),
+            "model"             => 'gpt-4-0613',
+            "messages"          => $this->prompts,
             "temperature"       => 1, // Control's randomness, less is more deterministic
             "top_p"             => 0, // Diversity
             "n"                 => 1, // Number of choices to return

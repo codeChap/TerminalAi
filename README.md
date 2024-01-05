@@ -1,7 +1,7 @@
-# Tai
+# Tai - Terminal AI
 AI from the Terminal
 
-TAI allows you to communcate with OpenAI's GPT4  via your linux terminal.
+TAI allows you to communicate with OpenAI's GPT4  via your linux terminal.
 
 ## Installation
 1. Download the Tai.phar file and make it executable.

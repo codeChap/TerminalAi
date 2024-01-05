@@ -1,0 +1,173 @@
+<?php
+
+class Tai
+{
+    public function run($config, $argv)
+    {
+        // Check for the existence of the first argument
+        if (empty($argv[1])) {
+            print "Usage: tai \"Hello, I'm Tai.\"\n";
+            print "       tai install\n";
+            exit;
+        }
+
+        // Reserved commands
+        switch($argv[1]){
+
+            // Install Tai
+            case 'install':
+                $this->install($config, $argv);
+                exit;
+                break;
+
+            // Help
+            case 'help':
+                print "Usage: tai \"Hello, I'm Tai.\"\n";
+                print "       tai install\n";
+                exit;
+                break;
+
+            // Clear messages
+            case 'clear' : 
+                $home   = getenv("HOME");
+                $folder = $home . "/.config/tai";
+                $file   = $folder . "/messages.txt";
+                file_put_contents($file, "");
+                print "Messages cleared.\n";
+                exit;
+                break;
+        }
+
+        // Set some variables
+        $home   = getenv("HOME");
+        $folder = $home . "/.config/tai";
+        $file   = $folder . "/messages.txt";
+        $key    = $folder . "/OpenAi.key";
+
+        // Run existence checks
+        if ( ! file_exists($folder)) {
+            print "Tai needs to be setup, please run `tai install`.\n";
+            exit;
+        }
+        if ( ! file_exists($file)) {
+            print "Tai needs to be setup, please run `tai install`.\n";
+            exit;
+        }
+        if ( ! file_exists($key)) {
+            print "Tai needs to be setup, please run `tai install`.\n";
+            exit;
+        }
+
+        // Combine args as a prompt
+        $prompt = '';
+        foreach($argv AS $k => $arg){
+            if($k > 0){
+                $prompt .= $arg . " ";
+            }
+        }
+
+        // Get the last message
+        $messages = file_get_contents($file);
+        $messages = explode("\n", $messages);
+
+        // Get the last 15 messages
+        $messages = array_slice($messages, -15);
+
+        // Decode each message
+        $prompts = [];
+        foreach($messages AS $k => $message){
+            $prompts[] = json_decode($message, true);
+        }
+
+        // Add user prompt to the end
+        $prompts[] = [
+            "role"    => "user",
+            "content" => trim($prompt),
+        ];
+
+        // Clean up
+        $prompts = array_filter($prompts);
+
+        // Run OpenAI
+        $openai = new OpenAi;
+        $openai->setKey(file_get_contents($key));
+        $openai->setPrompt($prompts);
+        $result = $openai->run();
+        print PHP_EOL;
+
+        // Build response for storage
+        $prompts[] = [
+            "role"    => "assistant",
+            "content" => $result,
+        ];
+
+        // Store the response at ~/.config/tai/messages.txt
+        $messages = '';
+        foreach($prompts AS $prompt){
+            $messages .= json_encode($prompt) . "\n";
+        }
+        file_put_contents($file, $messages);
+    }
+
+    /**
+     * Install Tai
+     */
+    public function install($config, $argv)
+    {
+        // Set the folder for Tai
+        $home = getenv("HOME");
+        $folder = $home . "/.config/tai";
+
+        // If the Tai folder doesn't exist, create it
+        if ( ! file_exists($folder)) {
+            print "Tai needs to create a folder at ~/.config/tai to store your messages and API key.\n";
+            print "Is this ok? (y/n) ";
+            $handle = fopen ("php://stdin","r");
+            $line = fgets($handle);
+            if(trim($line) != 'y'){
+                print "Aborting.\n";
+                exit;
+            }
+            fclose($handle);
+            print "\n";
+
+            // Create the folder
+            mkdir($folder);
+        }
+
+        // Check for the existence of the ~/.config/tai/messages.txt file
+        $file = $folder . "/messages.txt";
+        if ( ! file_exists($file)) {
+            print "Tai needs to create a file at ~/.config/tai/messages.txt to store your messages.\n";
+            print "Is this ok? (y/n) ";
+            $handle = fopen ("php://stdin","r");
+            $line = fgets($handle);
+            if(trim($line) != 'y'){
+                print "Aborting.\n";
+                exit;
+            }
+            fclose($handle);
+            print "\n";
+
+            // Create the file
+            file_put_contents($file, "");
+        }
+
+        // Check for the existence of the ~/.config/tai/OpenAi.key file
+        $file = $folder . "/OpenAi.key";
+        if ( ! file_exists($file)) {
+            print "Tai needs your OpenAI API key to run.\n";
+            print "Please enter it now: ";
+            $handle = fopen ("php://stdin","r");
+            $line = fgets($handle);
+            fclose($handle);
+            print "\n";
+
+            // Create the file
+            file_put_contents($file, $line);
+        }
+
+        // Let the user know they can alter the key at any time
+        print "You can change your API key at any time by editing ~/.config/tai/OpenAi.key\n";
+    }
+}

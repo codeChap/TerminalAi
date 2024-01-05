@@ -1,13 +1,25 @@
-<?php
+<?php 
 
+/**
+ * Class Tai
+ * 
+ * The Tai class represents the terminal AI application.
+ * It provides functionality to run commands, install Tai, and interact with OpenAI.
+ */
 class Tai
 {
+    /**
+     * Run the Tai application.
+     * 
+     * @param array $config The configuration settings.
+     * @param array $argv The command line arguments.
+     * @return void
+     */
     public function run($config, $argv)
     {
         // Check for the existence of the first argument
         if (empty($argv[1])) {
-            print "Usage: tai \"Hello, I'm Tai.\"\n";
-            print "       tai install\n";
+            print static::getHelpInfo();
             exit;
         }
 
@@ -22,8 +34,7 @@ class Tai
 
             // Help
             case 'help':
-                print "Usage: tai \"Hello, I'm Tai.\"\n";
-                print "       tai install\n";
+                print static::getHelpInfo();
                 exit;
                 break;
 
@@ -110,7 +121,11 @@ class Tai
     }
 
     /**
-     * Install Tai
+     * Install Tai.
+     * 
+     * @param array $config The configuration settings.
+     * @param array $argv The command line arguments.
+     * @return void
      */
     public function install($config, $argv)
     {
@@ -169,5 +184,24 @@ class Tai
 
         // Let the user know they can alter the key at any time
         print "You can change your API key at any time by editing ~/.config/tai/OpenAi.key\n";
+    }
+
+    /**
+     * Get the help info.
+     */
+    public static function getHelpInfo()
+    {
+return <<<EOT
+
+Tai is a terminal AI application that uses OpenAI to generate responses based on given prompts.
+
+Usage:
+    tai [prompt]
+
+Commands:
+    install     Install Tai
+    clear       Clear messages
+    help        Show this help info
+EOT . PHP_EOL . PHP_EOL;
     }
 }

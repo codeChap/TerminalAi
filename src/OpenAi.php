@@ -1,11 +1,26 @@
 <?php
-
+/**
+ * Class OpenAi
+ * 
+ * This class represents an OpenAI chatbot that interacts with the OpenAI API to generate responses based on given prompts.
+ */
 class OpenAi
 {
+    /**
+     * @var array $prompts An array of prompts to be used for generating responses.
+     */
     public $prompts = [];
 
+    /**
+     * @var string $key The API key used for authentication with the OpenAI API.
+     */
     public $key;
 
+    /**
+     * Set the API key
+     * 
+     * @param string $key
+     */
     public function setKey($key)
     {
         $this->key = $key;
@@ -39,6 +54,11 @@ class OpenAi
         $this->prompts = $prompts;
     }
 
+    /**
+     * Run the chatbot and generate responses
+     * 
+     * @return string
+     */
     public function run()
     {
         // Set API key and endpoint

@@ -17,7 +17,7 @@ $phar->startBuffering();
 
 // Adding files to the Phar archive
 $phar->buildFromDirectory(__DIR__, '/\.php$/');
-$phar->addFile('config.ini');
+//$phar->addFile('config.ini');
 
 // Set the default stub
 $defaultStub = $phar->createDefaultStub('index.php');

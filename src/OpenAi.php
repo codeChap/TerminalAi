@@ -17,6 +17,36 @@ class OpenAi
     public $key;
 
     /**
+     * @var bool $stream Whether or not to stream back partial results as they are generated, instead of waiting for completion.
+     */
+    public $stream = true;
+    
+    /**
+     * 
+     */
+    public $temperature = 1;
+
+    /**
+     * 
+     */
+    public $top_p = 0;
+
+    /**
+     * 
+     */
+    public $n = 1;
+
+    /**
+     * 
+     */
+    public $frequency_penalty = 0;
+
+    /**
+     * 
+     */
+    public $presence_penalty = 0;
+
+    /**
      * Set the API key
      * 
      * @param string $key
@@ -47,6 +77,12 @@ class OpenAi
         // Reset keys
         $prompts = array_values($prompts);
 
+        // Prepend a blank prompt
+        array_unshift($prompts, [
+            "role" => "system",
+            "content" => "You are ChatGPT, a general assistant."
+        ]);
+
         // Set the prompts
         $this->prompts = $prompts;
     }
@@ -64,19 +100,19 @@ class OpenAi
         // Set up headers
         $headers = [
             "Content-Type: application/json",
-            "Authorization: Bearer " . $this->key,
+            "Authorization: Bearer " . trim($this->key),
         ];
 
         // Default post body
         $body = [
             "model"             => 'gpt-4-0613',
             "messages"          => $this->prompts,
-            "temperature"       => 1, // Control's randomness, less is more deterministic
-            "top_p"             => 0, // Diversity
-            "n"                 => 1, // Number of choices to return
-            "frequency_penalty" => 0, // Penalize new tokens based on their existing frequency
-            "presence_penalty"  => 0, // Penalize new tokens based on whether they appear in the text so far
-            "stream"            => true // Stream back partial results as they are generated, instead of waiting for completion
+            "temperature"       => $this->temperature, // Control's randomness, less is more deterministic
+            "top_p"             => $this->top_p, // Diversity
+            "n"                 => $this->n, // Number of choices to return
+            "frequency_penalty" => $this->frequency_penalty, // Penalize new tokens based on their existing frequency
+            "presence_penalty"  => $this->presence_penalty, // Penalize new tokens based on whether they appear in the text so far
+            "stream"            => $this->stream // Stream back partial results as they are generated, instead of waiting for completion
         ];
 
         // The callback function while streaming
@@ -105,17 +141,38 @@ class OpenAi
             return strlen($str);//return the exact length
         };
 
-        // Create a cURL session
-        $ch = curl_init($endpoint);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
-        curl_setopt($ch, CURLOPT_WRITEFUNCTION, $callback);
-        curl_exec($ch);
+        $payload = json_encode($body);
+
+        // Initialize a cURL session
+        $curl = curl_init();
+
+        // Set cURL options
+        curl_setopt($curl, CURLOPT_URL, $endpoint);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        //curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
+        curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        curl_setopt($curl, CURLOPT_VERBOSE, false);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $payload);
+
+        // Set the callback function if streaming
+        if($this->stream){
+            curl_setopt($curl, CURLOPT_WRITEFUNCTION, $callback);
+        }
+
+        // Execute the cURL session and fetch the response
+        $response = curl_exec($curl);
+
+        // Check for cURL errors
+        if(curl_errno($curl)){
+            // If an error occurred, print the error message
+            echo 'cURL error: ' . curl_error($curl);
+        }
 
         // Close the cURL session
-        curl_close($ch);
+        curl_close($curl);
 
         // Done
         return implode($conversation);

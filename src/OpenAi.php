@@ -12,6 +12,11 @@ class OpenAi
     public $prompts = [];
 
     /**
+     * @var string $model The model to use for generating responses.
+     */
+    public $model = 'gpt-4-0613';
+
+    /**
      * @var string $key The API key used for authentication with the OpenAI API.
      */
     public $key;
@@ -22,29 +27,52 @@ class OpenAi
     public $stream = true;
     
     /**
-     * 
+     * Control's randomness, less is more deterministic
      */
-    public $temperature = 1;
+    public $temperature = 0.9;
 
     /**
-     * 
+     * Diversity of results, 0 is most diverse
      */
     public $top_p = 0;
 
     /**
-     * 
+     * Number of results to return
      */
     public $n = 1;
 
     /**
-     * 
+     * Penalize new tokens based on their existing frequency
      */
     public $frequency_penalty = 0;
 
     /**
-     * 
+     * Stream back partial results as they are generated, instead of waiting for completion
      */
     public $presence_penalty = 0;
+
+    /**
+     * Constructor
+     * 
+     * @param array $config
+     */
+    public function __construct($config)
+    {
+        // Set Model
+        $this->model = $config['model'];
+
+        // Set Temperature
+        $this->temperature = (float) $config['temperature'];
+
+        // Set Top P
+        $this->top_p = (int) $config['top_p'];
+
+        // Set frequency penalty
+        $this->frequency_penalty = (int) $config['frequency_penalty'];
+
+        // Set presence penalty
+        $this->presence_penalty = (int) $config['presence_penalty'];
+    }
 
     /**
      * Set the API key
@@ -105,14 +133,14 @@ class OpenAi
 
         // Default post body
         $body = [
-            "model"             => 'gpt-4-0613',
+            "model"             => $this->model,
             "messages"          => $this->prompts,
-            "temperature"       => $this->temperature, // Control's randomness, less is more deterministic
-            "top_p"             => $this->top_p, // Diversity
-            "n"                 => $this->n, // Number of choices to return
-            "frequency_penalty" => $this->frequency_penalty, // Penalize new tokens based on their existing frequency
-            "presence_penalty"  => $this->presence_penalty, // Penalize new tokens based on whether they appear in the text so far
-            "stream"            => $this->stream // Stream back partial results as they are generated, instead of waiting for completion
+            "temperature"       => $this->temperature,
+            "top_p"             => $this->top_p,
+            "n"                 => $this->n,
+            "frequency_penalty" => $this->frequency_penalty,
+            "presence_penalty"  => $this->presence_penalty,
+            "stream"            => $this->stream
         ];
 
         // The callback function while streaming
@@ -122,9 +150,9 @@ class OpenAi
             $json = str_replace("data: ", "", $str);
 
             // Check for error @todo find a better wat to check for errors
-            //if(strpos($json, "error") !== false){
-            //    throw new Exception($json);
-            //}
+            if(strpos($json, "error") !== false){
+                print $json;
+            }
 
             // Explode around new lines
             $json = explode("\n", $json);

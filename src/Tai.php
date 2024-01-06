@@ -15,7 +15,7 @@ class Tai
      * @param array $argv The command line arguments.
      * @return void
      */
-    public function run($config, $argv)
+    public function run($argv)
     {
         // Check for the existence of the first argument
         if (empty($argv[1])) {
@@ -28,7 +28,7 @@ class Tai
 
             // Install Tai
             case 'install':
-                $this->install($config, $argv);
+                $this->install($argv);
                 exit;
                 break;
 
@@ -54,6 +54,7 @@ class Tai
         $folder = $home . "/.config/tai";
         $file   = $folder . "/messages.txt";
         $key    = $folder . "/OpenAi.key";
+        $config = parse_ini_file($folder . "/config.ini");
 
         // Run existence checks
         if ( ! file_exists($folder)) {
@@ -100,10 +101,10 @@ class Tai
         $prompts = array_filter(array_values($prompts));
 
         // Run OpenAI
-        $openai = new OpenAi;
+        $openai = new OpenAi($config);
         $openai->setKey(file_get_contents($key));
         $openai->setPrompts($prompts);
-        $result = $openai->run();
+        $result = $openai->run($config);
         print PHP_EOL;
 
         // Build response for storage
@@ -127,7 +128,7 @@ class Tai
      * @param array $argv The command line arguments.
      * @return void
      */
-    public function install($config, $argv)
+    public function install($argv)
     {
         // Set the folder for Tai
         $home = getenv("HOME");
@@ -166,6 +167,24 @@ class Tai
 
             // Create the file
             file_put_contents($file, "");
+        }
+
+        // Copy the config.ini file to ~/.config/tai/config.ini
+        $file = $folder . "/config.ini";
+        if ( ! file_exists($file)) {
+            print "Tai needs to create a file at ~/.config/tai/config.ini to store your configuration settings.\n";
+            print "Is this ok? (y/n) ";
+            $handle = fopen ("php://stdin","r");
+            $line = fgets($handle);
+            if(trim($line) != 'y'){
+                print "Aborting.\n";
+                exit;
+            }
+            fclose($handle);
+            print "\n";
+
+            // Create the file
+            copy("config.ini", $file);
         }
 
         // Check for the existence of the ~/.config/tai/OpenAi.key file

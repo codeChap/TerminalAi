@@ -62,6 +62,8 @@ To interact with the AI, simply type tai followed by your query:
 tai "Could you assist me with Python debugging?"
 ```
 
+![](ScreenGrap.png)
+
 ## Available Commands
 
 * tai clear - Resets your conversation history, allowing for a fresh start.

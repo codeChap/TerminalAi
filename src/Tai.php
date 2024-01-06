@@ -102,7 +102,7 @@ class Tai
         // Run OpenAI
         $openai = new OpenAi;
         $openai->setKey(file_get_contents($key));
-        $openai->setPrompt($prompts);
+        $openai->setPrompts($prompts);
         $result = $openai->run();
         print PHP_EOL;
 

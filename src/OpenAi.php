@@ -31,7 +31,7 @@ class OpenAi
      * 
      * @param array $prompts
      */
-    public function setPrompt( array $prompts)
+    public function setPrompts( array $prompts)
     {
         // Loop over the prompts and filter out empty ones
         foreach($prompts AS $k => $prompt){
@@ -39,9 +39,6 @@ class OpenAi
                 unset($prompts[$k]);
             }
         }
-
-        // Make sure each prompts content is unique
-        $prompts = array_unique($prompts, SORT_REGULAR);
 
         if(count($prompts) == 0){
             throw new Exception("No valid prompts provided");
@@ -67,7 +64,7 @@ class OpenAi
         // Set up headers
         $headers = [
             "Content-Type: application/json",
-            "Authorization: Bearer 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"
+            "Authorization: Bearer " . $this->key,
         ];
 
         // Default post body
@@ -87,6 +84,11 @@ class OpenAi
         $callback = function ($ch, $str) use (&$conversation) {
 
             $json = str_replace("data: ", "", $str);
+
+            // Check for error
+            if(strpos($json, "error") !== false){
+                throw new Exception($json);
+            }
 
             // Explode around new lines
             $json = explode("\n", $json);

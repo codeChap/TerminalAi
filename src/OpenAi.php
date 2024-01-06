@@ -121,10 +121,10 @@ class OpenAi
 
             $json = str_replace("data: ", "", $str);
 
-            // Check for error
-            if(strpos($json, "error") !== false){
-                throw new Exception($json);
-            }
+            // Check for error @todo find a better wat to check for errors
+            //if(strpos($json, "error") !== false){
+            //    throw new Exception($json);
+            //}
 
             // Explode around new lines
             $json = explode("\n", $json);

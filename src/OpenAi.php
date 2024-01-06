@@ -150,9 +150,9 @@ class OpenAi
             $json = str_replace("data: ", "", $str);
 
             // Check for error @todo find a better wat to check for errors
-            if(strpos($json, "error") !== false){
-                print $json;
-            }
+            //if(strpos($json, "error") !== false){
+            //    print $json;
+            //}
 
             // Explode around new lines
             $json = explode("\n", $json);

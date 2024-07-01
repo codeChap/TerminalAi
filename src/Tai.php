@@ -185,7 +185,7 @@ class Tai
 
             // Create the file
             $iniContents = "[settings]
-model             = gpt-4-0613
+model             = gpt-4o
 temperature       = 1,
 top_p             = 0,
 frequency_penalty = 0,

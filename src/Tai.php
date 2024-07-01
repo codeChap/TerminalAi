@@ -186,9 +186,9 @@ class Tai
             // Create the file
             $iniContents = "[settings]
 model             = gpt-4o
-temperature       = 1,
-top_p             = 0,
-frequency_penalty = 0,
+temperature       = 1
+top_p             = 0
+frequency_penalty = 0
 presence_penalty  = 0";
             file_put_contents($file, $iniContents);
         }
